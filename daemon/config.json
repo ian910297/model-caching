@@ -1,4 +1,4 @@
-REMOTE = {
+{
     "nickname": {
         "hostname": "example.com",
         "port": 22,

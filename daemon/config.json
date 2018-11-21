@@ -1,8 +1,0 @@
-{
-    "nickname": {
-        "hostname": "example.com",
-        "port": 22,
-        "username": "root",
-        "password": "password"
-    }
-}

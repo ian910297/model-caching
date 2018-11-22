@@ -18,8 +18,7 @@ class ServerController():
         i = 0
         while i < node_num:
             for j in range(len(self.nodes)):
-                if (len(self.nodes[j]['tasks']) < self.__MAX_TASK_PER_NODE) 
-                    and (self.nodes[j]['eval'] > node_eval):
+                if (len(self.nodes[j]['tasks']) < self.__MAX_TASK_PER_NODE) and (self.nodes[j]['eval'] > node_eval):
                     self.nodes[j]['tasks'].append(task)
                     break
             i = i + 1

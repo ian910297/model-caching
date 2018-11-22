@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+from os.path import abspath, expanduser
 
 import chainer
 import chainer.functions as F
@@ -35,7 +36,7 @@ def main():
                         help='Frequency of taking a snapshot')
     parser.add_argument('--gpu', '-g', type=int, default=-1,
                         help='GPU ID (negative value indicates CPU)')
-    parser.add_argument('--out', '-o', default='result',
+    parser.add_argument('--out', '-o', default='~/model_root',
                         help='Directory to output the result')
     parser.add_argument('--resume', '-r', default='',
                         help='Resume the training from snapshot')
@@ -43,6 +44,8 @@ def main():
                         help='Number of units')
     parser.add_argument('--noplot', dest='plot', action='store_false',
                         help='Disable PlotReport extension')
+    parser.add_argument('--filename', default='mlp.model',
+                        help='Model filename')
     args = parser.parse_args()
 
     print('GPU: {}'.format(args.gpu))
@@ -50,6 +53,9 @@ def main():
     print('# Minibatch-size: {}'.format(args.batchsize))
     print('# epoch: {}'.format(args.epoch))
     print('')
+
+    # get the absoult path
+    args.out = abspath(expanduser(args.out))
 
     # Set up a neural network to train
     # Classifier reports softmax cross entropy loss and accuracy at every
@@ -118,7 +124,7 @@ def main():
 
     # Run the training
     trainer.run()
-    chainer.serializers.save_npz('{}/mlp.model'.format(args.out), model)
+    chainer.serializers.save_npz('{}/{}'.format(args.out, args.filename), model)
 
 
 if __name__ == '__main__':

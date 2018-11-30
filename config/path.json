@@ -1,0 +1,7 @@
+{
+    "model_root_dir": "~/model_root",
+    "model_script_dir": "~/model-caching/model",
+    "shell_script_dir": "../Multi-interfaceFileFetcher/scripts",
+    "node_config": "~/model-caching/config/node.json",
+    "store_node_config": "~/model-caching/config/store_node.json"
+}

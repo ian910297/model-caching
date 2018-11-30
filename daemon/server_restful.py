@@ -1,16 +1,21 @@
 from flask import Flask, request, jsonify
+from os.path import abspath, expanduser
+import requests
 import time
 import json
-from os.path import abspath, expanduser
 import sys
-import requests
 
-sys.path.insert(0, abspath('../Multi-interfaceFileFetcher'))
+sys.path.insert(0, abspath(expanduser('~/model-caching/service_wrapper')))
+sys.path.insert(0, abspath(expanduser('~/model-caching/Multi-interfaceFileFetcher')))
+# service wrapper
+from controller.server_controller import ServerController
+# model getter
 from ModelGetter.ModelGetter import ModelGetter
-from server_controller import ServerController
 
 app = Flask(__name__)
-server = ServerController()
+with open(abspath(expanduser('~/model-caching/config/path.json')), 'r') as src:
+    path = json.loads(src.read())
+server = ServerController(path)
 
 @app.route("/call-node/<filename>")
 def call_node(filename="mlp.model"):
@@ -22,6 +27,10 @@ def call_node(filename="mlp.model"):
         print('error')
     
     return "OK"
+
+@app.route("/build-model/<modelname>/<unit>/<epoch>")
+def build_model(modelname, unit, epoch):
+    pass
 
 @app.route("/test-async")
 def test_async():
@@ -37,14 +46,10 @@ def test_async():
 def main():
     global app
     global server
-    src = open('hosts.json', 'r')
-    content = json.loads(src.read())
-    for key, value in content.items():
-        server.add_node(key, value)
 
     # launch RESTful server
-    app.debug = True
-    app.run(host='localhost', port=5000)
+    # app.debug = True
+    # app.run(host='localhost', port=5000)
 
 if __name__ == "__main__":
     main()

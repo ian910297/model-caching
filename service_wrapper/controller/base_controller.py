@@ -6,7 +6,7 @@ class BaseController:
     def __init__(self):
         pass
 
-    def model_list(self, model_root_path):
+    def get_model_list(self, model_root_path):
         model_root_dir = abspath(expanduser(model_root_path))
         model_names = [basename(x) for x in glob(model_root_dir + '/*.model')]
 

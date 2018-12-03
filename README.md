@@ -17,7 +17,6 @@ Prepare at least 3 raspberry pi 3B
 2. Establish a ftp service on one raspberry pi
 `/etc/vsftpd.conf`
 ```shell
-listen=YES
 anonymous_enable=YES
 anon_root=/home/pi
 anon_max_rate=2048000

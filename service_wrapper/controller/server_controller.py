@@ -10,33 +10,22 @@ from controller.base_controller import BaseController
 from ModelGetter.ModelGetter import ModelGetter
 
 class ServerController(BaseController):
-    def __init__(self, path):
-        self.path = path
-        self.model_script_dir = abspath(expanduser(path['model_script_dir']))
-        self.nodes = []
-        self.tasks = []
-        self.__MAX_TASK_PER_NODE = 2
-        self.__MAX_TASK = 0
-    
-    def add_node(self, name, data):
-        self.nodes.append({'name': name, 'data': data, 'tasks': [], 'eval': 0})
-        self.__MAX_TASK = len(self.nodes) * self.__MAX_TASK_PER_NODE
+    def __init__(self, nodes, policy='simple'):
+        #self.path = path
+        #self.model_script_dir = abspath(expanduser(path['model_script_dir']))
+        self.nodes = nodes
+        self.tasks = [0] * len(nodes)
+        self.__MAX_TASK_PER_NODE = 5
+        self.policy = policy
 
-    def run(self, task):
-        # eval task to figure out how many nodes this task would use
-        node_num, node_eval  = self.eval(task)
-        
-        # choose node
-        i = 0
-        while i < node_num:
-            for j in range(len(self.nodes)):
-                if (len(self.nodes[j]['tasks']) < self.__MAX_TASK_PER_NODE) and (self.nodes[j]['eval'] > node_eval):
-                    self.nodes[j]['tasks'].append(task)
-                    break
-            i = i + 1
-        
-        # execute task
-        # check that exist the required model on the node
+    def select_node(self, task):
+        if(self.policy == 'simple'):
+            for i in range(len(self.tasks)):
+                if self.tasks[i] < self.__MAX_TASK_PER_NODE:
+                    self.tasks[i] += 1
+                    return i
+            
+            return -1
         
     
     def build_model(self, filename='mlp.unit5.epoch50.model'):

@@ -1,7 +1,16 @@
 from os.path import abspath, expanduser, basename
 from glob import glob
-from subprocess import Popen, PIPE
+import time
+import random
+import numpy as np
+import operator
+import json
+
+# chainer
 import chainer
+import chainer.functions as F
+import chainer.links as L
+from model.mlp import MLP
 
 # service wrapper
 from controller.base_controller import BaseController
@@ -12,7 +21,11 @@ from ModelGetter.ModelGetter import ModelGetter
 class NodeController(BaseController):
     def __init__(self, path):
         self._path = path
-        self.model_list = self.model_list(path['model_root_dir'])
+        #self.model_list = self.get_model_list(path['model_root_dir'])
+        self.cache_list = {}
+        self.model_dict = {}
+        self.size = 2
+        _, self.test = chainer.datasets.get_mnist()
 
         # Model Getter
         self._store_node_config = self.load_config(path['store_node_config'])
@@ -20,7 +33,7 @@ class NodeController(BaseController):
         self.p_desc = 'Dummy'
         self.mg = ModelGetter(interface_descriptors=self.if_desc, policy_descriptor=self.p_desc)
 
-        self.model_script_path = abspath(expanduser(path['model_script_dir']))
+        # task management
         self.tasks = []
         self.__MAX_TASK = 2
    
@@ -35,19 +48,68 @@ class NodeController(BaseController):
             cnt += 1
             print("[Round {}][Cost {}]".format(cnt, end - start))
     
-    def use_model(self, filename):
-        self.status = 'use model'
-        PYTHON = 'python3'
-        EXECUTE_SCRIPT = self.model_script_path + '/inference_mnist.py'
-        execute_command = [PYTHON, EXECUTE_SCRIPT, '--filename', filename]
-        p = Popen(execute_command, stdout=PIPE, stderr=PIPE)
+    def get_model(self, modelname):
+        #print(self.if_desc)
+        self.mg.GetModel(modelname)
 
-        # wait for the process to terminate
-        # or use p.wait() to wait
-        out, err = p.communicate()
+    def inference(self, unit, modelname):
+        print(unit)
+        print(modelname)
+
+        model = L.Classifier(MLP(unit, 10))
+        # Load weight
+        model_root_dir = abspath(expanduser(self._path['model_root_dir']))
+        #print('{}/{}'.format(model_root_dir, modelname))
+        chainer.serializers.load_npz('{}/{}'.format(model_root_dir, modelname), model)
+
+        # Run inference
+        test_index = random.randint(1, len(self.test))
+        x = chainer.Variable(np.asarray([self.test[test_index][0]])) # test data 
+        t = chainer.Variable(np.asarray([self.test[test_index][1]])) # labels
+        y = model.predictor(x).data # inference result
+        pred_label = y.argmax(axis=1)
+
+        print('test index:', test_index)
+        print('The test data label:', self.test[test_index][1])
+        print('result:', pred_label[0])
+        if int(self.test[test_index][1]) is int(pred_label[0]):
+            return 'correct'
+        else:
+            return 'failed'
+    
+    def cache_update(self, modelname):
+        if modelname not in self.model_dict.keys():
+            self.model_dict[modelname] = {}
+            self.model_dict[modelname]['frequency'] = 0
+            self.model_dict[modelname]['timestamp'] = []
+        self.model_dict[modelname]['frequency'] += 1
+        self.model_dict[modelname]['timestamp'].append(time.time())
+
         
-        self.status = 'use model end'
-        return 200
-        
-    def transmit_data(self):
-        pass
+        # directly insert
+        if len(self.model_dict.items()) < self.size:
+            self.cache_list[modelname] = self.model_dict[modelname]
+
+        # Cache Most Frequency those popular model
+        sorted_by_value = sorted(self.cache_list.items(), 
+                                    key=lambda item: (item[1]['frequency'], item[1]['timestamp'][-1]))
+        i = 0
+        while i < len(sorted_by_value):
+            if self.model_dict[modelname]['frequency'] >= sorted_by_value[i][1]['frequency']:
+                if modelname not in self.cache_list.keys():
+                    del self.cache_list[sorted_by_value[i][0]]
+                self.cache_list[modelname] = self.model_dict[modelname]
+                
+            i += 1
+
+        if i < self.size:
+            self.cache_list[modelname] = self.model_dict[modelname]
+
+        print(sorted_by_value)
+    
+    def export(self):
+        filepath = abspath(expanduser('~/model_root'))
+        filepath += '/out.json'
+        with open(filepath, 'w') as src:
+            src.write(json.dumps(self.model_dict))
+

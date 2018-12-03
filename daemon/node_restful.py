@@ -15,33 +15,50 @@ with open(abspath(expanduser('~/model-caching/config/path.json')), 'r') as src:
     path = json.loads(src.read())
 node = NodeController(path)
 
-@app.route("/use-model/<filename>")
-def use_model(filename):
-    print("filename is", filename)
+@app.route("/inference/<unit>/<modelname>")
+def inference(unit, modelname):
     global node
-    status_code = node.use_model(filename)
+    unit = int(unit)
+    
+    if modelname not in node.model_list:
+        print('[WARNING] required model')
+        print('Get the model')
+        node.get_model(modelname)
 
-    return "OK"
+    result = node.inference(unit, modelname)
+    return result
 
-@app.route("/status")
-def status():
+@app.route("/get-model/<modelname>")
+def get_model(modelname):
     global node
 
-    return node.status
+    download_time = 'not download'
+    #print(node.model_history)
+    if modelname not in node.cache_list:
+        download_start = time.time()
+        node.get_model(modelname)
+        download_end = time.time()
+        download_time = download_end - download_start
 
-def my_sleep(num, second):
-    print("Thread", num)
-    time.sleep(second)
+        print(download_time)
 
+    node.cache_update(modelname)
 
+    return str(download_time)
+
+@app.route("/export")
+def export():
+    global node
+    node.export()
+
+    return 'export success'
 
 def main():
     global app
     global node
-    shell_script_path= '../Multi-interfaceFileFetcher/scripts'
 
     #app.debug = True
-    #app.run(host='localhost', port=5001)
+    app.run(host='0.0.0.0', port=5001)
 
 
 if __name__ == "__main__":

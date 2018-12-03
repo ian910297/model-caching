@@ -31,7 +31,7 @@ def inference(unit, modelname):
 @app.route("/get-model/<modelname>")
 def get_model(modelname):
     global node
-
+    request_start = time.time()
     download_time = 'not download'
     #print(node.model_history)
     if modelname not in node.cache_list:
@@ -40,11 +40,16 @@ def get_model(modelname):
         download_end = time.time()
         download_time = download_end - download_start
 
-        print(download_time)
-
     node.cache_update(modelname)
+    request_end = time.time()
+    request_time = request_end - request_start
 
-    return str(download_time)
+    res = {}
+    res['request_time'] = str(request_time)
+    res['download_time'] = str(download_time)
+    res = json.dumps(res)
+
+    return jsonify(res)
 
 @app.route("/export")
 def export():

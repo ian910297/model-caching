@@ -104,8 +104,6 @@ class NodeController(BaseController):
 
         if i < self.size:
             self.cache_list[modelname] = self.model_dict[modelname]
-
-        print(sorted_by_value)
     
     def export(self):
         filepath = abspath(expanduser('~/model_root'))

@@ -17,12 +17,13 @@ model_names = [basename(x) for x in glob(model_root_dir + '/*.model')]
 def pack(data):
     output = []
     for i in range(len(data)):
-        record = data[i]
-        timestamp = json.loads(record[1])
+        record, response = data[i]
+        timestamp = json.loads(response)
 
         new = {}
-        new['url'] = record[0]
-        new['modelname'] = new['url'].split('/')[-1]
+        new['host'] = record['host']
+        new['url'] = record['url']
+        new['modelname'] = record['modelname']
         new['request_time'] = timestamp['request_time']
         new['download_time'] = timestamp['download_time']
         output.append(new)
@@ -46,28 +47,27 @@ def do_work(url):
         #print('[ERROR]')
         return 'ERROR'
 
-def worker(q, host):
+def worker(in_q, out_q, host):
     data = []
     while True:
-        url = q.get()
-        if url is None:
+        record = in_q.get()
+        if record is None:
             url = 'http://{}:5001/export'.format(host)
             export(url)
 
-            data = pack(data)
-            with open(host+'.json', 'w') as src:
-                src.write(json.dumps(data))
+            output = pack(data)
+            out_q.put(output)
             break
-        res = do_work(url)
-        data.append([url, res])
-        q.task_done()
+        response = do_work(record['url'])
+        data.append([record, response])
+        in_q.task_done()
 
-def boss(host, num_worker_threads=4, times=100):
+def boss(host, out_q, num_worker_threads=4, times=100):
     # assign task to worker
     worker_threads = []
-    q = Queue()
+    in_q = Queue()
     for i in range(num_worker_threads):
-        t = Thread(target=worker, args=(q, host))
+        t = Thread(target=worker, args=(in_q, out_q, host))
         t.start()
         worker_threads.append(t)
     
@@ -75,13 +75,16 @@ def boss(host, num_worker_threads=4, times=100):
     global model_names
     for i in range(times):
         modelname = random.choice(model_names)
-        url = 'http://{}:5001/get-model/{}'.format(host, modelname)
-        q.put(url)
-    q.join()
+        record = {}
+        record['url'] = 'http://{}:5001/get-model/{}'.format(host, modelname)
+        record['host'] = host
+        record['modelname'] = modelname
+        in_q.put(record)
+    in_q.join()
 
     # stop worker
     for i in range(num_worker_threads):
-        q.put(None)
+        in_q.put(None)
     for t in worker_threads:
         t.join()
 
@@ -91,14 +94,31 @@ def controller():
     
     # create boss thread to manage worker
     boss_threads = []
+    out_q = Queue()
     for i in range(len(node)):
-        t = Thread(target=boss, args=(node[i]['host'], 2, 10))
+        t = Thread(target=boss, args=(node[i]['host'], out_q))
         t.start()
         boss_threads.append(t)
     
     # wait boss()
     for t in boss_threads:
         t.join()
+    
+    # export result into a json
+    out_q.put(None)
+    data = []
+    while True:
+        output = out_q.get()
+        if output is None:
+            break
+        
+        for i in range(len(output)):
+            data.append(output[i])
+        out_q.task_done()
+
+    with open('output.json', 'w') as src:
+        src.write(json.dumps(data))
+    
 
 if __name__ == "__main__":
     controller()

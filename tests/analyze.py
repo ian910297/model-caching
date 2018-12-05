@@ -8,5 +8,7 @@ json_files = [basename(x) for x in glob(current_dir + '/*.json')]
 for i in range(len(json_files)):
     print(json_files[i])
     with open(json_files[i], 'r') as src:
-        print(src)
         data = json.loads(src.read())
+        
+    for j in range(len(data)):
+        print(data[j])

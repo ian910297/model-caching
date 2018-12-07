@@ -21,9 +21,16 @@ server = ServerController(node)
 def build_model(modelname, unit, epoch):
     pass
 
+@app.route("/get-model/<modelname>")
+def get_model(modelname):
+    global server
+
+    task = {}
+    task['modelname'] = modelname
+    result = server.assign_task(task)
+
 def main():
     global app
-    global server
 
     # launch RESTful server
     app.debug = True

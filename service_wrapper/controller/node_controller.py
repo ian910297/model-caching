@@ -3,7 +3,6 @@ from glob import glob
 import time
 import random
 import numpy as np
-import operator
 import json
 
 # chainer
@@ -14,17 +13,16 @@ from model.mlp import MLP
 
 # service wrapper
 from controller.base_controller import BaseController
-from model.mlp import MLP
 # model getter
 from ModelGetter.ModelGetter import ModelGetter
 
 class NodeController(BaseController):
-    def __init__(self, path):
+    def __init__(self, path, cache_size=2):
         self._path = path
         #self.model_list = self.get_model_list(path['model_root_dir'])
         self.cache_list = {}
         self.model_dict = {}
-        self.size = 2
+        self.cache_size = cache_size
         _, self.test = chainer.datasets.get_mnist()
 
         # Model Getter
@@ -32,21 +30,6 @@ class NodeController(BaseController):
         self.if_desc = self.extract_config(self._store_node_config, path['shell_script_dir'])
         self.p_desc = 'Dummy'
         self.mg = ModelGetter(interface_descriptors=self.if_desc, policy_descriptor=self.p_desc)
-
-        # task management
-        self.tasks = []
-        self.__MAX_TASK = 2
-   
-    def test_getter(self, round_end):
-        cnt = 0
-        while cnt < round_end:
-            target_model = random.choice(["mlp.unit5.epoch5.model", "mlp.unit5.epoch10.model"])
-
-            start = time.time()
-            self.mg.GetModel(target_model)
-            end = time.time()
-            cnt += 1
-            print("[Round {}][Cost {}]".format(cnt, end - start))
     
     def get_model(self, modelname):
         #print(self.if_desc)
@@ -87,7 +70,7 @@ class NodeController(BaseController):
 
         
         # directly insert
-        if len(self.model_dict.items()) < self.size:
+        if len(self.model_dict.items()) < self.cache_size:
             self.cache_list[modelname] = self.model_dict[modelname]
 
         # Cache Most Frequency those popular model
@@ -102,7 +85,7 @@ class NodeController(BaseController):
                 
             i += 1
 
-        if i < self.size:
+        if i < self.cache_size:
             self.cache_list[modelname] = self.model_dict[modelname]
     
     def export(self):

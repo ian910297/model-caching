@@ -1,5 +1,13 @@
+"""
+Are global variables thread safe in flask? How do I share data between requests?
+https://stackoverflow.com/a/32825482
+
+Not only is it not thread safe, it's not process safe ......
+I would implement my cache mechanism with Queue()
+"""
 from flask import Flask, request, jsonify
 from os.path import abspath, expanduser
+from queue import Queue
 import requests
 import time
 import json
@@ -32,19 +40,17 @@ def inference(unit, modelname):
 def get_model(modelname):
     global node
     request_start = time.time()
-    download_time = 'not download'
-    #print(node.model_history)
-    if modelname not in node.cache_list:
-        download_start = time.time()
-        node.get_model(modelname)
-        download_end = time.time()
-        download_time = download_end - download_start
+    
+    download_start = time.time()
+    node.get_model(modelname)
+    download_end = time.time()
+    download_time = download_end - download_start
 
-    node.cache_update(modelname)
     request_end = time.time()
     request_time = request_end - request_start
 
     res = {}
+    res['node_request_start'] = str(request_start)
     res['request_time'] = str(request_time)
     res['download_time'] = str(download_time)
     res = json.dumps(res)
@@ -63,8 +69,7 @@ def main():
     global node
 
     #app.debug = True
-    app.run(host='0.0.0.0', port=5001)
-
+    app.run(host='0.0.0.0', port=5001, threaded=True)
 
 if __name__ == "__main__":
     main()

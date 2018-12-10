@@ -11,6 +11,7 @@ def do_work(host, task_queue, score_queue, out_queue):
             break
         
         result = {}
+        result['host'] = host
         result['modelname'] = record['modelname']
         result['url'] = 'http://{}:5001/get-model/{}'.format(host, record['modelname'])
         result['timestamp'] = {}

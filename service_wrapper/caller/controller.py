@@ -29,6 +29,8 @@ class Controller():
             result = {}
             result['task_waiting_time'] = float(timestamp['node_request_start']) - float(timestamp['task_assign'])
             result['task_time'] = float(timestamp['task_end']) - float(timestamp['task_start'])
+            result['host'] = record['host']
+            result['modelname'] = record['modelname']
             data.append(result)
         
         with open('output.json', 'w') as src:

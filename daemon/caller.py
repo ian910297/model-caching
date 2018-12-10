@@ -21,7 +21,8 @@ def main():
     while len(file_freq)<1000:
         file_freq = req_sim.generate_file_popularity()
     time_period = req_sim.generate_time_period()
-    for i in range(len(time_period)):
+    #for i in range(len(time_period)):
+    for i in range(100):
         record = {}
         record['task_assign'] = time.time()
         record['modelname'] = req_sim.model_names[file_freq[i]]
@@ -29,6 +30,15 @@ def main():
         con.task_queue.put(record)
         time.sleep(time_period[i])
     
+
+    # stop worker
+    for i in range(4):
+        con.task_queue.put(None)
+    for i in range(len(con.bosses)):
+        boss = con.bosses[i]
+        for j in range(len(boss.workers)):
+            boss.workers[j].join()
+    print('output data')
     con.export()
     
 

@@ -4,7 +4,8 @@ from queue import Queue
 from caller.boss import Boss
 
 class Controller():
-    def __init__(self, nodes, policy='simple'):
+    def __init__(self, nodes, __MAX_WORKER=2, policy='simple'):
+        self.__MAX_WORKER = __MAX_WORKER
         self.task_queue = Queue()
         self.out_queue = Queue()
         self.bosses = self.__init_bosses(nodes)
@@ -15,7 +16,8 @@ class Controller():
         bosses = []
         for i in range(len(nodes)):
             #t = Boss(nodes[i]['host'], Queue(), self.out_queue)
-            t = Boss(nodes[i]['host'], self.task_queue, self.out_queue)
+            t = Boss(nodes[i]['host'], nodes[i]['port'], self.task_queue, 
+                     self.out_queue, self.__MAX_WORKER)
             bosses.append(t)
         
         return bosses

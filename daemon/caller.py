@@ -13,16 +13,23 @@ from caller.request_simulator import RequestSimulator
 def main():
     with open(abspath(expanduser('~/model-caching/config/node.json')), 'r') as src:
         node = json.loads(src.read())
-    
-    con = Controller(node)
 
-    req_sim = RequestSimulator(60, 2.)
+    with open(abspath(expanduser('~/model-caching/config/env.json')), 'r') as src:
+        env = json.loads(src.read())
+    
+    _TASK_SIZE = env['_TASK_SIZE']
+    _WORKER_PER_NODE = env['_WORKER_PER_NODE']
+    _REQUEST_PER_MINUTE = env['_REQUEST_PER_MINUTE']
+    _ZIPF_ALPHA = env['_ZIPF_ALPHA']
+
+    con = Controller(node, _WORKER_PER_NODE)
+
+    req_sim = RequestSimulator(_TASK_SIZE, _ZIPF_ALPHA)
     file_freq = []
-    while len(file_freq)<1000:
-        file_freq = req_sim.generate_file_popularity()
-    time_period = req_sim.generate_time_period()
-    #for i in range(len(time_period)):
-    for i in range(100):
+    while len(file_freq) < _TASK_SIZE:
+        file_freq = req_sim.generate_file_popularity(_TASK_SIZE * 8)
+    time_period = req_sim.generate_time_period(_TASK_SIZE)
+    for i in range(_TASK_SIZE):
         record = {}
         record['task_assign'] = time.time()
         record['modelname'] = req_sim.model_names[file_freq[i]]
@@ -32,8 +39,11 @@ def main():
     
 
     # stop worker
-    for i in range(4):
-        con.task_queue.put(None)
+    for i in range(len(con.bosses)):
+        boss = con.bosses[i]
+        for j in range(len(boss.workers)):
+            con.task_queue.put(None)
+    
     for i in range(len(con.bosses)):
         boss = con.bosses[i]
         for j in range(len(boss.workers)):

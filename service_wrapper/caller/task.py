@@ -2,18 +2,18 @@ import requests
 import time
 import json
 
-def do_work(host, task_queue, score_queue, out_queue):
+def do_work(host, port, task_queue, score_queue, out_queue):
     while True:
         record = task_queue.get()
         
         if record is None:
-            url = 'http://{}:5001/export'.format(host)
+            url = 'http://{}:{}/export'.format(host, port)
             break
         
         result = {}
         result['host'] = host
         result['modelname'] = record['modelname']
-        result['url'] = 'http://{}:5001/get-model/{}'.format(host, record['modelname'])
+        result['url'] = 'http://{}:{}/get-model/{}'.format(host, port, record['modelname'])
         result['timestamp'] = {}
         result['timestamp']['task_assign'] = record['task_assign']
         result['timestamp']['task_start'] = time.time()

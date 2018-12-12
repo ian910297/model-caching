@@ -22,7 +22,6 @@ app = Flask(__name__)
 with open(abspath(expanduser('~/model-caching/config/path.json')), 'r') as src:
     path = json.loads(src.read())
 node = NodeController(path)
-
 @app.route("/inference/<unit>/<modelname>")
 def inference(unit, modelname):
     global node
@@ -68,8 +67,9 @@ def main():
     global app
     global node
 
-    #app.debug = True
-    app.run(host='0.0.0.0', port=5001, threaded=True)
+    app.debug = True
+    app.run(host='0.0.0.0', processes=1, threaded=False)
+    #app.run(host='0.0.0.0', processes=1, threaded=True)
 
 if __name__ == "__main__":
     main()

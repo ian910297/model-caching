@@ -1,12 +1,8 @@
-{
-    "pi1": {
-        "wifi": "10.0.31.3",
-        "model_root": "model_root",
-        "type": "node"
-    },
-    "pi2": {
-        "wifi": "10.0.31.4",
-        "model_root": "model_root",
+[
+    {
+        "name": "pi1",
+        "host": "localhost",
+        "port": 5000,
         "type": "node"
     }
-}
+]

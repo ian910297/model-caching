@@ -21,7 +21,7 @@ from controller.node_controller import NodeController
 app = Flask(__name__)
 with open(abspath(expanduser('~/model-caching/config/path.json')), 'r') as src:
     path = json.loads(src.read())
-node = NodeController(path)
+node = NodeController(path, 'Dummy')
 @app.route("/inference/<unit>/<modelname>")
 def inference(unit, modelname):
     global node

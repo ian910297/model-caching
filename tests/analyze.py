@@ -69,7 +69,7 @@ while i < len(hosts):
     plt.suptitle(suptitle)
     plt.legend(loc='right')
     plt.show()
-    i += 1
+    i = j
 
 total_task /= total_length
 total_waiting /= total_length

@@ -17,7 +17,7 @@ from controller.base_controller import BaseController
 from ModelGetter.ModelGetter import ModelGetter
 
 class NodeController(BaseController):
-    def __init__(self, path, cache_size=2):
+    def __init__(self, path, p_desc='Dummy', cache_size=2):
         self._path = path
         #self.model_list = self.get_model_list(path['model_root_dir'])
         self.cache_list = {}
@@ -28,7 +28,7 @@ class NodeController(BaseController):
         # Model Getter
         self._store_node_config = self.load_config(path['store_node_config'])
         self.if_desc = self.extract_config(self._store_node_config, path['shell_script_dir'])
-        self.p_desc = 'Dummy'
+        self.p_desc = p_desc
         self.mg = ModelGetter(interface_descriptors=self.if_desc, policy_descriptor=self.p_desc)
     
     def get_model(self, modelname):

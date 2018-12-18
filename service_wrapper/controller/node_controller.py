@@ -92,5 +92,5 @@ class NodeController(BaseController):
         filepath = abspath(expanduser('~/model_root'))
         filepath += '/out.json'
         with open(filepath, 'w') as src:
-            src.write(json.dumps(self.model_dict))
+            src.write(json.dumps(self.mg.__policy_agent__.__action_map__))
 

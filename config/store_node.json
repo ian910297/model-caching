@@ -1,6 +1,18 @@
 {
-    "pi-store-1": {
+    "pc": {
+        "wifi": "10.0.31.2",
+        "model_root": "model_root",
+        "type": "node",
+        "port": 5000
+    },
+    "pi-wired": {
         "wifi": "10.0.31.5",
+        "model_root": "model_root",
+        "type": "node",
+        "port": 5000
+    },
+    "pi-wireless": {
+        "wifi": "10.0.31.8",
         "model_root": "model_root",
         "type": "node",
         "port": 5000

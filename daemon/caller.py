@@ -24,7 +24,7 @@ def main():
 
     con = Controller(node, _WORKER_PER_NODE)
 
-    req_sim = RequestSimulator(_TASK_SIZE, _ZIPF_ALPHA)
+    req_sim = RequestSimulator(_REQUEST_PER_MINUTE, _ZIPF_ALPHA)
     file_freq = []
     while len(file_freq) < _TASK_SIZE:
         file_freq = req_sim.generate_file_popularity(_TASK_SIZE * 8)

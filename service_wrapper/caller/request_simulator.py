@@ -41,7 +41,7 @@ class RequestSimulator:
 
     def generate_time_period(self, size=100, dist='exp'):
         if dist is 'exp':
-            time_period = [np.random.exponential(1/self.dist_lambda) for _ in range(size)]
+            time_period = [random.expovariate(self.dist_lambda)*60 for _ in range(size)]
         
         return time_period
 

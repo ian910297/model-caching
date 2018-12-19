@@ -67,7 +67,7 @@ def main():
     global app
     global node
 
-    app.debug = True
+    app.debug = False
     app.run(host='0.0.0.0', processes=1, threaded=False)
     #app.run(host='0.0.0.0', processes=1, threaded=True)
 

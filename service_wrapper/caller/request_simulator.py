@@ -2,6 +2,7 @@ import numpy as np
 import collections
 import json
 import math
+import random
 from random import shuffle
 from os.path import abspath, expanduser, basename
 from glob import glob

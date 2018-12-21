@@ -16,11 +16,5 @@
         "model_root": "model_root",
         "type": "node",
         "port": 5000
-    },
-    "tx1-wireless": {
-        "wifi": "10.0.31.9",
-        "model_root": "model_root",
-        "type": "node",
-        "port": 5000
     }
 }

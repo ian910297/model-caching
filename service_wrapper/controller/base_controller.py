@@ -32,9 +32,9 @@ class BaseController:
             if_desc.append('Ftp,' + n + '_ftp,'+ if_info['wifi'] + ',' +
                                  if_info['model_root'] + ',' + shell_script_path)
     
-            #if 'bluetooth' in if_info.keys():
-            #    if_desc.append('Bluetooth,' + n + '_bt,'+ if_info['wifi'] + ',' +
-            #            if_info['bluetooth'][0] +  ',' + if_info['bluetooth'][1] + ',model_root,'+ scripts_path)
+            if 'bluetooth' in if_info.keys():
+                if_desc.append('Bluetooth,' + n + '_bt,'+ if_info['wifi'] + ',' +
+                if_info['bluetooth'][0] +  ',' + if_info['bluetooth'][1] + ',model_root,'+ shell_script_path)
     
         return if_desc
     

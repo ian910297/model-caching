@@ -7,12 +7,14 @@
     },
     "pi-wired": {
         "wifi": "10.0.31.5",
+	"bluetooth": ["B8:27:EB:FC:D6:8B", "9"],
         "model_root": "model_root",
         "type": "node",
         "port": 5000
     },
     "pi-wireless": {
         "wifi": "10.0.31.8",
+	"bluetooth" : ["B8:27:EB:5D:35:B3", "9"],
         "model_root": "model_root",
         "type": "node",
         "port": 5000

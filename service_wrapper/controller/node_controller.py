@@ -75,7 +75,8 @@ class NodeController(BaseController):
         timestamp = time.time()
         self.model_dict[modelname]['timestamp'].append(timestamp)
 
-        
+        if self.cache_size == 0: return
+            
         # directly insert
         if len(self.cache) < self.cache_size:
             self.cache.append({'modelname': modelname, 'timestamp': timestamp})

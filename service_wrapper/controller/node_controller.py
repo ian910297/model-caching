@@ -20,8 +20,8 @@ class NodeController(BaseController):
     def __init__(self, path, p_desc='Dummy', cache_size=2):
         self._path = path
         #self.model_list = self.get_model_list(path['model_root_dir'])
-        self.cache_list = {}
         self.model_dict = {}
+        self.cache = []
         self.cache_size = cache_size
         _, self.test = chainer.datasets.get_mnist()
 
@@ -36,9 +36,6 @@ class NodeController(BaseController):
         self.mg.GetModel(modelname)
 
     def inference(self, unit, modelname):
-        print(unit)
-        print(modelname)
-
         model = L.Classifier(MLP(unit, 10))
         # Load weight
         model_root_dir = abspath(expanduser(self._path['model_root_dir']))
@@ -52,41 +49,51 @@ class NodeController(BaseController):
         y = model.predictor(x).data # inference result
         pred_label = y.argmax(axis=1)
 
-        print('test index:', test_index)
-        print('The test data label:', self.test[test_index][1])
-        print('result:', pred_label[0])
-        if int(self.test[test_index][1]) is int(pred_label[0]):
+        #print('test index:', test_index)
+        #print('The test data label:', self.test[test_index][1])
+        #print('result:', pred_label[0])
+        if int(self.test[test_index][1]) == int(pred_label[0]):
             return 'correct'
         else:
             return 'failed'
     
+    def is_cache(self, modelname):
+        result = False
+        for i in range(len(self.cache)):
+            if self.cache[i]['modelname'] == modelname:
+                result = True
+                break
+        
+        return result
+
     def cache_update(self, modelname):
         if modelname not in self.model_dict.keys():
             self.model_dict[modelname] = {}
             self.model_dict[modelname]['frequency'] = 0
             self.model_dict[modelname]['timestamp'] = []
         self.model_dict[modelname]['frequency'] += 1
-        self.model_dict[modelname]['timestamp'].append(time.time())
+        timestamp = time.time()
+        self.model_dict[modelname]['timestamp'].append(timestamp)
 
         
         # directly insert
-        if len(self.model_dict.items()) < self.cache_size:
-            self.cache_list[modelname] = self.model_dict[modelname]
-
-        # Cache Most Frequency those popular model
-        sorted_by_value = sorted(self.cache_list.items(), 
-                                    key=lambda item: (item[1]['frequency'], item[1]['timestamp'][-1]))
+        if len(self.cache) < self.cache_size:
+            self.cache.append({'modelname': modelname, 'timestamp': timestamp})
+            return
+        
         i = 0
-        while i < len(sorted_by_value):
-            if self.model_dict[modelname]['frequency'] >= sorted_by_value[i][1]['frequency']:
-                if modelname not in self.cache_list.keys():
-                    del self.cache_list[sorted_by_value[i][0]]
-                self.cache_list[modelname] = self.model_dict[modelname]
-                
+        # remove the same element
+        while i < self.cache_size:
+            if self.cache[i]['modelname'] == modelname:
+                del self.cache[i]
+                break
             i += 1
-
-        if i < self.cache_size:
-            self.cache_list[modelname] = self.model_dict[modelname]
+        
+        # if it is the first time access into cache list, remove the head
+        if i == self.cache_size:
+            del self.cache[0]
+        
+        self.cache.append({'modelname': modelname, 'timestamp': timestamp})
     
     def export(self):
         filepath = abspath(expanduser('~/model_root'))

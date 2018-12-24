@@ -21,8 +21,9 @@ def main():
     _WORKER_PER_NODE = env['_WORKER_PER_NODE']
     _REQUEST_PER_MINUTE = env['_REQUEST_PER_MINUTE']
     _ZIPF_ALPHA = env['_ZIPF_ALPHA']
+    _WORK = env['_WORK']
 
-    con = Controller(node, _WORKER_PER_NODE)
+    con = Controller(node, _WORK, _WORKER_PER_NODE)
 
     req_sim = RequestSimulator(_REQUEST_PER_MINUTE, _ZIPF_ALPHA)
     file_freq = []
@@ -33,6 +34,8 @@ def main():
         record = {}
         record['task_assign'] = time.time()
         record['modelname'] = req_sim.model_names[file_freq[i]]
+        if _WORK == 'inference':
+            record['unit'] = record['modelname'].split('.')[1][4:]
         print('[{}] Request: {}'.format(i, record['modelname']))
         con.task_queue.put(record)
         time.sleep(time_period[i])

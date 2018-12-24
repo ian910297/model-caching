@@ -26,25 +26,53 @@ node = NodeController(path, 'Softmax')
 def inference(unit, modelname):
     global node
     unit = int(unit)
-    
-    if modelname not in node.model_list:
-        print('[WARNING] required model')
-        print('Get the model')
-        node.get_model(modelname)
+    request_start = time.time()
+    download_time = 0
 
+    if node.is_cache(modelname) == False:
+        download_start = time.time()
+        # download model
+        node.get_model(modelname)
+        download_end = time.time()
+        download_time = download_end - download_start
+
+    inference_start = time.time()
+    # inference
     result = node.inference(unit, modelname)
-    return result
+    inference_end = time.time()
+    
+    # cache update
+    node.cache_update(modelname)
+    request_end = time.time()
+
+    inference_time = inference_end - inference_start
+    request_time = request_end - request_start
+
+    res = {}
+    res['result'] = result
+    res['node_request_start'] = str(request_start)
+    res['request_time'] = str(request_time)
+    res['download_time'] = str(download_time)
+    res['inference_time'] = str(inference_time)
+    res = json.dumps(res)
+
+    return jsonify(res)
 
 @app.route("/get-model/<modelname>")
 def get_model(modelname):
     global node
     request_start = time.time()
-    
-    download_start = time.time()
-    node.get_model(modelname)
-    download_end = time.time()
-    download_time = download_end - download_start
+    download_time = 0
 
+    if node.is_cache(modelname) == False:
+        download_start = time.time()
+        # download
+        node.get_model(modelname)
+        download_end = time.time()
+        download_time = download_end - download_start
+
+    # cache update
+    node.cache_update(modelname)
     request_end = time.time()
     request_time = request_end - request_start
 
